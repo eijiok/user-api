@@ -1,25 +1,13 @@
 package main
 
 import (
-	"github.com/gorilla/mux"
+	"github.com/eijiok/user-api/server"
 	"log"
-	"net/http"
 )
 
 func main() {
-	router := mux.NewRouter()
-
-	router.
-		PathPrefix("/api").
-		Path("/users").
-		Methods(http.MethodGet).
-		HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-			writer.WriteHeader(http.StatusOK)
-			writer.Write([]byte("testing"))
-		})
-
-	err := http.ListenAndServe(":8080", router)
+	err := server.InitServer("api", "8080")
 	if err != nil {
-		log.Fatalf("Error on router initialization: %s", err.Error())
+		log.Fatalf("Server error: %s", err.Error())
 	}
 }
