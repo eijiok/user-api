@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	err := server.InitServer("api", "8080")
+	err := server.InitServer()
 	if err != nil {
 		log.Fatalf("Server error: %s", err.Error())
 	}

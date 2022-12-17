@@ -10,9 +10,10 @@ type RequestResponseFunc func(writer http.ResponseWriter, request *http.Request)
 
 type RequestResponseErrorFunc func(writer http.ResponseWriter, request *http.Request) *errors.HttpError
 
-type Factory interface {
+type UserFactory interface {
 	GetController() UserController
 	GetService() UserService
+	GetRepository() UserRepository
 }
 
 type UserController interface {
@@ -24,6 +25,14 @@ type UserController interface {
 }
 
 type UserService interface {
+	List() ([]model.User, error)
+	GetById(id string) (model.User, error)
+	Save(user model.User) (model.User, error)
+	Update(user model.User) error
+	Delete(id string) error
+}
+
+type UserRepository interface {
 	List() ([]model.User, error)
 	GetById(id string) (model.User, error)
 	Save(user model.User) (model.User, error)

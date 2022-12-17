@@ -1,14 +1,15 @@
 package user
 
 import (
+	"github.com/eijiok/user-api/interfaces"
 	"github.com/eijiok/user-api/utils"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
-func InitConf(pathPrefix string, apiRouter *mux.Router) {
+func InitConf(pathPrefix string, apiRouter *mux.Router, userFactory interfaces.UserFactory) {
 
-	controller := GetFactory().GetController()
+	controller := userFactory.GetController()
 	pathPrefix = "/" + pathPrefix
 	pathUserApi := "/users"
 	apiRouter.

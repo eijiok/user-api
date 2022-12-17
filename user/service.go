@@ -1,50 +1,36 @@
 package user
 
 import (
-	"fmt"
 	"github.com/eijiok/user-api/interfaces"
 	"github.com/eijiok/user-api/model"
 )
 
 type serviceImpl struct {
-	users []model.User
+	repository interfaces.UserRepository
 }
 
-func NewServiceImpl() interfaces.UserService {
-	service := serviceImpl{}
-	service.users = []model.User{
-		{
-			"123", "Eiji", 18, "eiji.ok@gmail.com", "zxjkdasfio", "rua x",
-		},
-		{
-			"124", "Fabio", 28, "fabio.ok@gmail.com", "zxcv", "rua y",
-		},
+func NewServiceImpl(repository interfaces.UserRepository) interfaces.UserService {
+	return &serviceImpl{
+		repository: repository,
 	}
-	return &service
 }
 
 func (s *serviceImpl) List() ([]model.User, error) {
-	return s.users, nil
+	return s.repository.List()
 }
 
 func (s *serviceImpl) Save(user model.User) (model.User, error) {
-	user.ID = "123"
-	return user, nil
+	return s.repository.Save(user)
 }
 
 func (s *serviceImpl) GetById(id string) (model.User, error) {
-	// read by user id
-	fmt.Printf("getting User", id)
-	return s.users[0], nil
+	return s.repository.GetById(id)
 }
 
 func (s *serviceImpl) Update(user model.User) error {
-	s.users[0] = user
-	return nil
+	return s.repository.Update(user)
 }
 
 func (s *serviceImpl) Delete(id string) error {
-	fmt.Printf("deleting User", id)
-	s.users = s.users[1:]
-	return nil
+	return s.repository.Delete(id)
 }
