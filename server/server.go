@@ -8,8 +8,6 @@ import (
 
 func InitServer(pathPrefix string, port string) error {
 	router := mux.NewRouter()
-	apiRouter := router.PathPrefix("/" + pathPrefix)
-	user.ConfigUserPaths(apiRouter)
+	user.InitConf(pathPrefix, router)
 	return http.ListenAndServe(":"+port, router)
-
 }
