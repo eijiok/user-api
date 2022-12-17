@@ -1,8 +1,10 @@
 package interfaces
 
 import (
+	"context"
 	"github.com/eijiok/user-api/errors"
 	"github.com/eijiok/user-api/model"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 )
 
@@ -25,17 +27,17 @@ type UserController interface {
 }
 
 type UserService interface {
-	List() ([]model.User, error)
-	GetById(id string) (model.User, error)
-	Save(user model.User) (model.User, error)
-	Update(user model.User) error
-	Delete(id string) error
+	List(ctx context.Context) ([]model.User, error)
+	GetById(ctx context.Context, id string) (*model.User, error)
+	Save(ctx context.Context, user *model.User) (*model.User, error)
+	Update(ctx context.Context, id string, user *model.User) error
+	Delete(ctx context.Context, id string) error
 }
 
 type UserRepository interface {
-	List() ([]model.User, error)
-	GetById(id string) (model.User, error)
-	Save(user model.User) (model.User, error)
-	Update(user model.User) error
-	Delete(id string) error
+	List(context.Context) ([]model.User, error)
+	GetById(ctx context.Context, id *primitive.ObjectID) (*model.User, error)
+	Save(ctx context.Context, user *model.User) (*primitive.ObjectID, error)
+	Update(ctx context.Context, user *model.User) (int64, error)
+	Delete(ctx context.Context, id *primitive.ObjectID) (int64, error)
 }

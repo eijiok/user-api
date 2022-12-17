@@ -18,18 +18,18 @@ func NewControllerImpl(service interfaces.UserService) interfaces.UserController
 	}
 }
 
-func (controller *controllerImpl) List(writer http.ResponseWriter, _ *http.Request) *errors.HttpError {
-	userList, err := controller.service.List()
-	if err != nil {
-		return errors.NewHttpError(err)
-	}
-
-	err = utils.WriteToJson(writer, userList)
+func (controller *controllerImpl) List(writer http.ResponseWriter, request *http.Request) *errors.HttpError {
+	userList, err := controller.service.List(request.Context())
 	if err != nil {
 		return errors.NewHttpError(err)
 	}
 
 	writer.WriteHeader(http.StatusOK)
+	err = utils.WriteToJson(writer, userList)
+	if err != nil {
+		return errors.NewHttpError(err)
+	}
+
 	return nil
 }
 
@@ -40,7 +40,7 @@ func (controller *controllerImpl) Create(writer http.ResponseWriter, request *ht
 		return errors.NewHttpError(readErr)
 	}
 
-	savedUser, err := controller.service.Save(user)
+	savedUser, err := controller.service.Save(request.Context(), &user)
 	if err != nil {
 		return errors.NewHttpError(err)
 	}
@@ -56,7 +56,7 @@ func (controller *controllerImpl) Create(writer http.ResponseWriter, request *ht
 
 func (controller *controllerImpl) Read(writer http.ResponseWriter, request *http.Request) *errors.HttpError {
 	id := utils.ReadParam(request, "id")
-	user, err := controller.service.GetById(id)
+	user, err := controller.service.GetById(request.Context(), id)
 	if err != nil {
 		return errors.NewHttpError(err)
 	}
@@ -77,8 +77,7 @@ func (controller *controllerImpl) Update(writer http.ResponseWriter, request *ht
 		return errors.NewHttpError(err)
 	}
 
-	user.ID = id
-	err = controller.service.Update(*user)
+	err = controller.service.Update(request.Context(), id, user)
 	if err != nil {
 		return errors.NewHttpError(err)
 	}
@@ -89,7 +88,7 @@ func (controller *controllerImpl) Update(writer http.ResponseWriter, request *ht
 
 func (controller *controllerImpl) Delete(writer http.ResponseWriter, request *http.Request) *errors.HttpError {
 	id := utils.ReadParam(request, "id")
-	err := controller.service.Delete(id)
+	err := controller.service.Delete(request.Context(), id)
 	if err != nil {
 		return errors.NewHttpError(err)
 	}
