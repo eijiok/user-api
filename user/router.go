@@ -8,7 +8,8 @@ import (
 )
 
 type userRouterImpl struct {
-	controller interfaces.UserController
+	controller  interfaces.UserController
+	middlewares []interfaces.MiddlewareFunc
 }
 
 func (routes *userRouterImpl) ConfigRoutes(apiRouter *mux.Router, pathPrefix string, pathUserApi string) {
@@ -16,35 +17,48 @@ func (routes *userRouterImpl) ConfigRoutes(apiRouter *mux.Router, pathPrefix str
 		PathPrefix(pathPrefix).
 		Path(pathUserApi).
 		Methods(http.MethodGet).
-		HandlerFunc(utils.RequestResponseErrorHandler(routes.controller.List))
+		HandlerFunc(routes.setHandler(routes.controller.List))
 
 	apiRouter.
 		PathPrefix(pathPrefix).
 		Path(pathUserApi).
 		Methods(http.MethodPost).
-		HandlerFunc(utils.RequestResponseErrorHandler(routes.controller.Create))
+		HandlerFunc(routes.setHandler(routes.controller.Create))
 
 	apiRouter.
 		PathPrefix(pathPrefix).
 		Path(pathUserApi + "/{id}").
 		Methods(http.MethodGet).
-		HandlerFunc(utils.RequestResponseErrorHandler(routes.controller.Read))
+		HandlerFunc(routes.setHandler(routes.controller.Read))
 
 	apiRouter.
 		PathPrefix(pathPrefix).
 		Path(pathUserApi + "/{id}").
 		Methods(http.MethodPut).
-		HandlerFunc(utils.RequestResponseErrorHandler(routes.controller.Update))
+		HandlerFunc(routes.setHandler(routes.controller.Update))
 
 	apiRouter.
 		PathPrefix(pathPrefix).
 		Path(pathUserApi + "/{id}").
 		Methods(http.MethodDelete).
-		HandlerFunc(utils.RequestResponseErrorHandler(routes.controller.Delete))
+		HandlerFunc(routes.setHandler(routes.controller.Delete))
 }
 
-func NewUserRouter(controller interfaces.UserController) interfaces.UserRouter {
+func (routes *userRouterImpl) setHandler(function interfaces.RequestResponseErrorFunc) interfaces.RequestResponseFunc {
+	return utils.RequestResponseErrorHandler(routes.addMiddlewares(function))
+}
+
+func (routes *userRouterImpl) addMiddlewares(handler interfaces.RequestResponseErrorFunc) interfaces.RequestResponseErrorFunc {
+	currHandler := handler
+	for _, middleware := range routes.middlewares {
+		currHandler = middleware(currHandler)
+	}
+	return currHandler
+}
+
+func NewUserRouter(controller interfaces.UserController, middlewares ...interfaces.MiddlewareFunc) interfaces.UserRouter {
 	return &userRouterImpl{
-		controller: controller,
+		controller:  controller,
+		middlewares: middlewares,
 	}
 }

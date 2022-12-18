@@ -21,13 +21,13 @@ func NewControllerImpl(service interfaces.UserService) interfaces.UserController
 func (controller *controllerImpl) List(writer http.ResponseWriter, request *http.Request) *errors.HttpError {
 	userList, err := controller.service.List(request.Context())
 	if err != nil {
-		return errors.NewInternalServerErrorWithMessage(err, "Could not fetch users")
+		return errors.NewInternalServerErrorWithMessage(&err, "Could not fetch users")
 	}
 
 	writer.WriteHeader(http.StatusOK)
 	err = utils.WriteToJson(writer, userList)
 	if err != nil {
-		return errors.NewInternalServerErrorWithMessage(err, "Error to serialize users to Json")
+		return errors.NewInternalServerErrorWithMessage(&err, "Error to serialize users to Json")
 	}
 
 	return nil
@@ -37,19 +37,19 @@ func (controller *controllerImpl) Create(writer http.ResponseWriter, request *ht
 	user := model.User{}
 	readErr := utils.ReadInJsonToStruct(request.Body, &user)
 	if readErr != nil {
-		return errors.NewHttpError(readErr, http.StatusBadRequest, "Error to deserialize the request body")
+		return errors.NewHttpError(http.StatusBadRequest, "Error to deserialize the request body", &readErr)
 	}
 
 	savedUser, err := controller.service.Save(request.Context(), &user)
 	if err != nil {
-		return errors.NewInternalServerErrorWithMessage(err, "Error to save the user")
+		return errors.NewInternalServerErrorWithMessage(&err, "Error to save the user")
 	}
 
 	writer.WriteHeader(http.StatusCreated)
 	writer.Header().Set("Content-Type", "application/json")
 	err = utils.WriteToJson(writer, savedUser)
 	if err != nil {
-		return errors.NewInternalServerErrorWithMessage(err, "Saved but failed to serialize the response")
+		return errors.NewInternalServerErrorWithMessage(&err, "Saved but failed to serialize the response")
 	}
 	return nil
 }
@@ -63,13 +63,13 @@ func (controller *controllerImpl) Read(writer http.ResponseWriter, request *http
 
 	user, err := controller.service.GetById(request.Context(), &objectId)
 	if err != nil {
-		return errors.NewInternalServerErrorWithMessage(err, "Error to fetch the document", id)
+		return errors.NewInternalServerErrorWithMessage(&err, "Error to fetch the document", id)
 	}
 
 	writer.WriteHeader(http.StatusOK)
 	err = utils.WriteToJson(writer, user)
 	if err != nil {
-		return errors.NewInternalServerErrorWithMessage(err, "Error to serialize the response", id)
+		return errors.NewInternalServerErrorWithMessage(&err, "Error to serialize the response", id)
 	}
 	return nil
 }
@@ -79,7 +79,7 @@ func (controller *controllerImpl) Update(writer http.ResponseWriter, request *ht
 	user := &model.User{}
 	err := utils.ReadInJsonToStruct(request.Body, user)
 	if err != nil {
-		return errors.NewInternalServerError(err)
+		return errors.NewInternalServerError(&err)
 	}
 
 	objectId, httpError := utils.IdToObjectId(id)
@@ -89,7 +89,7 @@ func (controller *controllerImpl) Update(writer http.ResponseWriter, request *ht
 
 	err = controller.service.Update(request.Context(), &objectId, user)
 	if err != nil {
-		return errors.NewInternalServerError(err)
+		return errors.NewInternalServerError(&err)
 	}
 
 	writer.WriteHeader(http.StatusOK)
@@ -104,7 +104,7 @@ func (controller *controllerImpl) Delete(writer http.ResponseWriter, request *ht
 	}
 	err := controller.service.Delete(request.Context(), &objectId)
 	if err != nil {
-		return errors.NewInternalServerError(err)
+		return errors.NewInternalServerError(&err)
 	}
 	writer.WriteHeader(http.StatusOK)
 	return nil

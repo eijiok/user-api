@@ -3,6 +3,7 @@ package user
 import (
 	"github.com/eijiok/user-api/db"
 	"github.com/eijiok/user-api/interfaces"
+	"github.com/eijiok/user-api/middleware"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -39,7 +40,11 @@ func (factory *factoryImpl) GetRepository() interfaces.UserRepository {
 
 func (factory *factoryImpl) GetRouter() interfaces.UserRouter {
 	if factory.router == nil {
-		factory.router = NewUserRouter(factory.GetController())
+		factory.router = NewUserRouter(
+			factory.GetController(),
+			middleware.CorsMiddleware,
+			middleware.AuthMiddleware,
+		)
 	}
 	return factory.router
 }

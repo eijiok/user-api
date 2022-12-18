@@ -14,6 +14,8 @@ type RequestResponseFunc func(writer http.ResponseWriter, request *http.Request)
 
 type RequestResponseErrorFunc func(writer http.ResponseWriter, request *http.Request) *errors.HttpError
 
+type MiddlewareFunc func(handler RequestResponseErrorFunc) RequestResponseErrorFunc
+
 type UserFactory interface {
 	GetController() UserController
 	GetService() UserService

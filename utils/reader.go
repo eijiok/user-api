@@ -30,7 +30,7 @@ func ReadParam(request *http.Request, param string) string {
 func IdToObjectId(id string) (primitive.ObjectID, *errors.HttpError) {
 	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return primitive.ObjectID{}, errors.NewHttpError(err, http.StatusBadRequest, "Error to serialize the id")
+		return primitive.ObjectID{}, errors.NewHttpError(http.StatusBadRequest, "Error to serialize the id", &err)
 	}
 	return objectId, nil
 }

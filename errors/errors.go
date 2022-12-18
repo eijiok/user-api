@@ -9,14 +9,20 @@ import (
 type HttpError struct {
 	StatusCode int
 	Message    string
-	Err        error
+	Err        *error
 }
 
 func (err *HttpError) Error() string {
-	return fmt.Sprintf("%s - StatusCode: %d - Message: %s", err.Err.Error(), err.StatusCode, err.Message)
+	details := ""
+	if err.Err != nil {
+		err := *(err.Err)
+		details = "- " + err.Error()
+	}
+
+	return fmt.Sprintf("%s - StatusCode: %d %s", err.Message, err.StatusCode, details)
 }
 
-func NewInternalServerError(err error) *HttpError {
+func NewInternalServerError(err *error) *HttpError {
 	return &HttpError{
 		StatusCode: http.StatusInternalServerError,
 		Message:    "Internal Error",
@@ -24,7 +30,7 @@ func NewInternalServerError(err error) *HttpError {
 	}
 }
 
-func NewInternalServerErrorWithMessage(err error, message ...string) *HttpError {
+func NewInternalServerErrorWithMessage(err *error, message ...string) *HttpError {
 	return &HttpError{
 		StatusCode: http.StatusInternalServerError,
 		Message:    strings.Join(message, " "),
@@ -32,7 +38,7 @@ func NewInternalServerErrorWithMessage(err error, message ...string) *HttpError 
 	}
 }
 
-func NewHttpError(err error, statusCode int, message string) *HttpError {
+func NewHttpError(statusCode int, message string, err *error) *HttpError {
 	return &HttpError{
 		StatusCode: statusCode,
 		Message:    message,
