@@ -36,7 +36,7 @@ func LoadMongoClient(ctx context.Context, mongodbURI string, mongoDatabaseName s
 		}
 	}()
 
-	log.Printf("Connected to mongodb database! Yay!!!")
+	log.Printf("Connected to mongodb database!")
 
 	clientDatabase := client.Database(mongoDatabaseName)
 	return &MongoConfig{

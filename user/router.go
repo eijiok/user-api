@@ -44,8 +44,9 @@ func (routes *userRouterImpl) ConfigRoutes(apiRouter *mux.Router, pathPrefix str
 		HandlerFunc(routes.setHandler(routes.controller.Delete))
 }
 
-func (routes *userRouterImpl) setHandler(function interfaces.RequestResponseErrorFunc) interfaces.RequestResponseFunc {
-	return utils.RequestResponseErrorHandler(routes.addMiddlewares(function))
+func (routes *userRouterImpl) setHandler(handler interfaces.RequestResponseErrorFunc) interfaces.RequestResponseFunc {
+
+	return utils.RequestResponseErrorHandler(routes.addMiddlewares(handler))
 }
 
 func (routes *userRouterImpl) addMiddlewares(handler interfaces.RequestResponseErrorFunc) interfaces.RequestResponseErrorFunc {

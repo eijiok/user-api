@@ -3,10 +3,13 @@ package user
 import (
 	"context"
 	"github.com/eijiok/user-api/dto"
+	"github.com/eijiok/user-api/errors"
 	"github.com/eijiok/user-api/interfaces"
 	"github.com/eijiok/user-api/model"
+	"github.com/eijiok/user-api/validators"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
+	"time"
 )
 
 type serviceImpl struct {
@@ -19,15 +22,15 @@ func NewServiceImpl(repository interfaces.UserRepository) interfaces.UserService
 	}
 }
 
-func (s *serviceImpl) List(ctx context.Context) ([]dto.User, error) {
+func (s *serviceImpl) List(ctx context.Context) ([]dto.UserResponse, error) {
 
 	list, err := s.repository.List(ctx)
 	if err != nil {
 		return nil, err
 	}
-	result := make([]dto.User, len(list))
+	result := make([]dto.UserResponse, len(list))
 	for i, user := range list {
-		dtoUser := dto.User{}
+		dtoUser := dto.UserResponse{}
 		dtoUser.FromUserModel(&user)
 		result[i] = dtoUser
 	}
@@ -35,21 +38,72 @@ func (s *serviceImpl) List(ctx context.Context) ([]dto.User, error) {
 	return result, err
 }
 
-func (s *serviceImpl) Save(ctx context.Context, user *model.User) (*dto.User, error) {
+func (s *serviceImpl) Save(ctx context.Context, user *model.User) (*dto.UserResponse, error) {
+	err := validateUser(user)
+	if err != nil {
+		return nil, err
+	}
+
 	id, err := s.repository.Save(ctx, user)
 	if err != nil {
 		return nil, err
 	}
-	dtoUser := dto.User{}
+	dtoUser := dto.UserResponse{}
 	dtoUser.FromUserModel(user)
 	dtoUser.ID = *id
 
 	return &dtoUser, nil
 }
 
-func (s *serviceImpl) GetById(ctx context.Context, objectID *primitive.ObjectID) (*dto.User, error) {
+func validateUser(user *model.User) error {
+	validationErrors := errors.ValidationError{}
+	validationErrors.Append(nameValidator()(user.Name))
+	validationErrors.Append(validateBirthday()(user.Birthday))
+	validationErrors.Append(validatePassword()(user.Password))
+	validationErrors.Append(validateEmail()(user.Email))
+
+	if validationErrors.HasErrors() {
+		return &validationErrors
+	}
+	return nil
+}
+
+func newFieldValidator(field string, validatorSlice ...validators.Validate) func(value any) error {
+	return func(value any) error {
+		for _, validator := range validatorSlice {
+			errorMessage := validator(value)
+			if len(errorMessage) > 0 {
+				return &errors.ValidationFieldError{
+					Field:   field,
+					Message: errorMessage,
+				}
+			}
+		}
+		return nil
+	}
+}
+
+func nameValidator() func(value any) error {
+	maxLength := 50
+	return newFieldValidator("name", validators.ValidateRequired, validators.ValidateStringLength(nil, &maxLength))
+}
+
+func validatePassword() func(value any) error {
+	return newFieldValidator("password", validators.ValidateRequired, validators.ValidatorPassword)
+}
+
+func validateEmail() func(value any) error {
+	return newFieldValidator("email", validators.ValidateRequired, validators.ValidatorEmail)
+}
+
+func validateBirthday() func(value any) error {
+	now := time.Now()
+	return newFieldValidator("birthday", validators.DateTimeValidator(nil, &now))
+}
+
+func (s *serviceImpl) GetById(ctx context.Context, objectID *primitive.ObjectID) (*dto.UserResponse, error) {
 	user, err := s.repository.GetById(ctx, objectID)
-	dtoUser := dto.User{}
+	dtoUser := dto.UserResponse{}
 	dtoUser.FromUserModel(user)
 	return &dtoUser, err
 }

@@ -11,7 +11,7 @@ func RequestResponseErrorHandler(reqRespErr interfaces.RequestResponseErrorFunc)
 		err := reqRespErr(writer, request)
 		if err != nil {
 			writer.WriteHeader(err.StatusCode)
-			_, _ = writer.Write([]byte(err.Error()))
+			_ = WriteToJson(writer, err)
 			log.Print(err.Error())
 		}
 	}

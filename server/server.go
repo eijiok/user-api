@@ -22,6 +22,7 @@ func InitServer() error {
 	muxRouter := mux.NewRouter()
 
 	configRoutes(mongoConfig, config, muxRouter)
+	log.Printf("The server started on port %s ", config.Port)
 
 	return http.ListenAndServe(":"+config.Port, muxRouter)
 }

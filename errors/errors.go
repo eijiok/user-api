@@ -7,9 +7,9 @@ import (
 )
 
 type HttpError struct {
-	StatusCode int
-	Message    string
-	Err        *error
+	StatusCode int    `json:"-"`
+	Message    string `json:"message"`
+	Err        *error `json:"error"`
 }
 
 func (err *HttpError) Error() string {
@@ -44,4 +44,36 @@ func NewHttpError(statusCode int, message string, err *error) *HttpError {
 		Message:    message,
 		Err:        err,
 	}
+}
+
+type ValidationFieldError struct {
+	Field   string `json:"field"`
+	Message string `json:"message"`
+}
+
+func (v *ValidationFieldError) Error() string {
+	return fmt.Sprintf("Error %s : %s. ", v.Field, v.Message)
+}
+
+type ValidationError struct {
+	Errs []error `json:"details"`
+}
+
+func (v *ValidationError) Append(error error) {
+	if error == nil {
+		return
+	}
+	v.Errs = append(v.Errs, error)
+}
+
+func (v *ValidationError) Error() string {
+	var sb strings.Builder
+	for _, err := range v.Errs {
+		sb.WriteString(err.Error())
+	}
+	return sb.String()
+}
+
+func (v *ValidationError) HasErrors() bool {
+	return len(v.Errs) > 0
 }
