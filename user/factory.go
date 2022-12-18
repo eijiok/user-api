@@ -13,6 +13,7 @@ type factoryImpl struct {
 	service    interfaces.UserService
 	controller interfaces.UserController
 	repository interfaces.UserRepository
+	router     interfaces.UserRouter
 }
 
 func (factory *factoryImpl) GetController() interfaces.UserController {
@@ -34,6 +35,13 @@ func (factory *factoryImpl) GetRepository() interfaces.UserRepository {
 		factory.repository = NewUserRepository(factory.database)
 	}
 	return factory.repository
+}
+
+func (factory *factoryImpl) GetRouter() interfaces.UserRouter {
+	if factory.router == nil {
+		factory.router = NewUserRouter(factory.GetController())
+	}
+	return factory.router
 }
 
 func GetFactory(mongoConfig *db.MongoConfig) interfaces.UserFactory {

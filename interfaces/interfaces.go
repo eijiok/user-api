@@ -5,6 +5,7 @@ import (
 	"github.com/eijiok/user-api/dto"
 	"github.com/eijiok/user-api/errors"
 	"github.com/eijiok/user-api/model"
+	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 )
@@ -17,6 +18,7 @@ type UserFactory interface {
 	GetController() UserController
 	GetService() UserService
 	GetRepository() UserRepository
+	GetRouter() UserRouter
 }
 
 type UserController interface {
@@ -41,4 +43,8 @@ type UserRepository interface {
 	Save(ctx context.Context, user *model.User) (*primitive.ObjectID, error)
 	Update(ctx context.Context, user *model.User) (int64, error)
 	Delete(ctx context.Context, id *primitive.ObjectID) (int64, error)
+}
+
+type UserRouter interface {
+	ConfigRoutes(apiRouter *mux.Router, pathPrefix string, pathUserApi string)
 }

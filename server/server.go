@@ -19,9 +19,17 @@ func InitServer() error {
 		log.Fatalf("Database connection error. Error: %s", err.Error())
 	}
 
-	router := mux.NewRouter()
+	muxRouter := mux.NewRouter()
 
-	user.InitConf(config.ApiPrefix, router, user.GetFactory(mongoConfig))
+	configRoutes(mongoConfig, config, muxRouter)
 
-	return http.ListenAndServe(":"+config.Port, router)
+	return http.ListenAndServe(":"+config.Port, muxRouter)
+}
+
+func configRoutes(mongoConfig *db.MongoConfig, config *infra.Config, muxRouter *mux.Router) {
+	factory := user.GetFactory(mongoConfig)
+	router := factory.GetRouter()
+	pathApiPrefix := "/" + config.ApiPrefix
+	pathUserApi := "/users"
+	router.ConfigRoutes(muxRouter, pathApiPrefix, pathUserApi)
 }
