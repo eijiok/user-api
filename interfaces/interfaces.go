@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"context"
+	"github.com/eijiok/user-api/dto"
 	"github.com/eijiok/user-api/errors"
 	"github.com/eijiok/user-api/model"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -27,9 +28,9 @@ type UserController interface {
 }
 
 type UserService interface {
-	List(ctx context.Context) ([]model.User, error)
-	GetById(ctx context.Context, id *primitive.ObjectID) (*model.User, error)
-	Save(ctx context.Context, user *model.User) (*model.User, error)
+	List(ctx context.Context) ([]dto.User, error)
+	GetById(ctx context.Context, id *primitive.ObjectID) (*dto.User, error)
+	Save(ctx context.Context, user *model.User) (*dto.User, error)
 	Update(ctx context.Context, id *primitive.ObjectID, user *model.User) error
 	Delete(ctx context.Context, id *primitive.ObjectID) error
 }
