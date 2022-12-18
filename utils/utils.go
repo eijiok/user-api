@@ -11,8 +11,8 @@ func RequestResponseErrorHandler(reqRespErr interfaces.RequestResponseErrorFunc)
 		err := reqRespErr(writer, request)
 		if err != nil {
 			writer.WriteHeader(err.StatusCode)
-			_, errorOnError := writer.Write([]byte(err.Error()))
-			log.Fatal(errorOnError)
+			_, _ = writer.Write([]byte(err.Error()))
+			log.Print(err.Error())
 		}
 	}
 }

@@ -27,7 +27,8 @@ func (r repositoryImpl) GetById(ctx context.Context, id *primitive.ObjectID) (*m
 	filter := bson.D{{"_id", id}}
 
 	var result model.User
-	err := r.collection.FindOne(ctx, filter).Decode(&result)
+	one := r.collection.FindOne(ctx, filter)
+	err := one.Decode(&result)
 	if err != nil {
 		return nil, err
 	}

@@ -32,31 +32,19 @@ func (s *serviceImpl) Save(ctx context.Context, user *model.User) (*model.User, 
 	return user, nil
 }
 
-func (s *serviceImpl) GetById(ctx context.Context, id string) (*model.User, error) {
-	objectId, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
-	return s.repository.GetById(ctx, &objectId)
+func (s *serviceImpl) GetById(ctx context.Context, objectID *primitive.ObjectID) (*model.User, error) {
+	return s.repository.GetById(ctx, objectID)
 }
 
-func (s *serviceImpl) Update(ctx context.Context, id string, user *model.User) error {
-	objectId, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
-	user.ID = objectId
+func (s *serviceImpl) Update(ctx context.Context, objectID *primitive.ObjectID, user *model.User) error {
+	user.ID = *objectID
 	countUpdated, err := s.repository.Update(ctx, user)
 	log.Printf("updated %d documents", countUpdated)
 	return err
 }
 
-func (s *serviceImpl) Delete(ctx context.Context, id string) error {
-	objectId, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
-	countDeleted, err := s.repository.Delete(ctx, &objectId)
+func (s *serviceImpl) Delete(ctx context.Context, objectId *primitive.ObjectID) error {
+	countDeleted, err := s.repository.Delete(ctx, objectId)
 	log.Printf("deleted %d documents", countDeleted)
 	return err
 }

@@ -2,7 +2,9 @@ package utils
 
 import (
 	"encoding/json"
+	"github.com/eijiok/user-api/errors"
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"io"
 	"net/http"
 )
@@ -23,4 +25,12 @@ func ReadInJsonToStruct(reader io.Reader, pointer any) error {
 
 func ReadParam(request *http.Request, param string) string {
 	return mux.Vars(request)[param]
+}
+
+func IdToObjectId(id string) (primitive.ObjectID, *errors.HttpError) {
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return primitive.ObjectID{}, errors.NewHttpError(err, http.StatusBadRequest, "Error to serialize the id")
+	}
+	return objectId, nil
 }

@@ -28,10 +28,10 @@ type UserController interface {
 
 type UserService interface {
 	List(ctx context.Context) ([]model.User, error)
-	GetById(ctx context.Context, id string) (*model.User, error)
+	GetById(ctx context.Context, id *primitive.ObjectID) (*model.User, error)
 	Save(ctx context.Context, user *model.User) (*model.User, error)
-	Update(ctx context.Context, id string, user *model.User) error
-	Delete(ctx context.Context, id string) error
+	Update(ctx context.Context, id *primitive.ObjectID, user *model.User) error
+	Delete(ctx context.Context, id *primitive.ObjectID) error
 }
 
 type UserRepository interface {
