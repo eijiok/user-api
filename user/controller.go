@@ -1,9 +1,9 @@
 package user
 
 import (
+	"github.com/eijiok/user-api/dto"
 	"github.com/eijiok/user-api/errors"
 	"github.com/eijiok/user-api/interfaces"
-	"github.com/eijiok/user-api/model"
 	"github.com/eijiok/user-api/utils"
 	"net/http"
 )
@@ -33,8 +33,23 @@ func (controller *controllerImpl) List(writer http.ResponseWriter, request *http
 	return nil
 }
 
+// Create
+/**
+ * swagger:route POST /api/users Users CreateUserRequest
+ *
+ * Creates a user from the request parameters
+ *
+ * Produces:
+ * - application/json
+ *
+ * Responses:
+ *    201: CreateUserResponse
+ *    400:
+ *    401:
+ *    500:
+ */
 func (controller *controllerImpl) Create(writer http.ResponseWriter, request *http.Request) *errors.HttpError {
-	user := model.User{}
+	user := dto.UserRequest{}
 	readErr := utils.ReadInJsonToStruct(request.Body, &user)
 	if readErr != nil {
 		return errors.NewHttpError(http.StatusBadRequest, "Error to deserialize the request body", &readErr)
@@ -80,7 +95,7 @@ func (controller *controllerImpl) Read(writer http.ResponseWriter, request *http
 
 func (controller *controllerImpl) Update(writer http.ResponseWriter, request *http.Request) *errors.HttpError {
 	id := utils.ReadParam(request, "id")
-	user := &model.User{}
+	user := &dto.UserRequest{}
 	err := utils.ReadInJsonToStruct(request.Body, user)
 	if err != nil {
 		return errors.NewInternalServerError(&err)

@@ -34,8 +34,8 @@ type UserController interface {
 type UserService interface {
 	List(ctx context.Context) ([]dto.UserResponse, error)
 	GetById(ctx context.Context, id *primitive.ObjectID) (*dto.UserResponse, error)
-	Save(ctx context.Context, user *model.User) (*dto.UserResponse, error)
-	Update(ctx context.Context, id *primitive.ObjectID, user *model.User) error
+	Save(ctx context.Context, user *dto.UserRequest) (*dto.UserResponse, error)
+	Update(ctx context.Context, id *primitive.ObjectID, user *dto.UserRequest) error
 	Delete(ctx context.Context, id *primitive.ObjectID) error
 }
 

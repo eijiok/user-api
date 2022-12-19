@@ -12,6 +12,14 @@ mongo-setup:
 	docker pull mongo
 	docker run -d --name mongodb-user-api -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=root -e MONGO_INITDB_ROOT_PASSWORD=root mongo
 
+# install swagger for Linux / MAC via docker
+swagger-setup:
+	docker pull quay.io/goswagger/swagger
+	alias swagger='docker run --rm -it  --user $(id -u):$(id -g) -e GOCACHE=/tmp -e  GOPATH=$(go env GOPATH):/go -v $HOME:$HOME -w $(pwd) quay.io/goswagger/swagger'
+
+swagger-docs:
+	swagger generate spec -m -o ./swagger.json
+
 # if you didn't started the mongodb container, you can run this command
 run-all:
 	@make start-mongo

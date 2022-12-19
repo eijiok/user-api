@@ -5,7 +5,6 @@ import (
 	"github.com/eijiok/user-api/dto"
 	"github.com/eijiok/user-api/errors"
 	"github.com/eijiok/user-api/interfaces"
-	"github.com/eijiok/user-api/model"
 	"github.com/eijiok/user-api/security"
 	"github.com/eijiok/user-api/validators"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -41,32 +40,32 @@ func (s *serviceImpl) List(ctx context.Context) ([]dto.UserResponse, error) {
 	return result, err
 }
 
-func (s *serviceImpl) Save(ctx context.Context, user *model.User) (*dto.UserResponse, error) {
-	err := validateUser(user)
+func (s *serviceImpl) Save(ctx context.Context, userRequest *dto.UserRequest) (*dto.UserResponse, error) {
+	err := validateUser(userRequest)
 	if err != nil {
 		return nil, err
 	}
-	err = createPasswordValidationFunc()(user.Password)
+	err = createPasswordValidationFunc()(userRequest.Password)
 	if err != nil {
 		return nil, &errors.ValidationError{
 			Errs: []error{err},
 		}
 	}
-	user.Password, err = s.hashPassword(user.Password)
+	userRequest.Password, err = s.hashPassword(userRequest.Password)
 	if err != nil {
 		return nil, err
 	}
-
+	user := userRequest.ToUser()
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 
-	id, err := s.repository.Save(ctx, user)
+	id, err := s.repository.Save(ctx, &user)
 	if err != nil {
 		return nil, err
 	}
 
 	dtoUser := dto.UserResponse{}
-	dtoUser.FromUserModel(user)
+	dtoUser.FromUserModel(&user)
 	dtoUser.ID = *id
 
 	return &dtoUser, nil
@@ -79,27 +78,29 @@ func (s *serviceImpl) GetById(ctx context.Context, objectID *primitive.ObjectID)
 	return &dtoUser, err
 }
 
-func (s *serviceImpl) Update(ctx context.Context, objectID *primitive.ObjectID, user *model.User) error {
-	user.ID = *objectID
-	user.UpdatedAt = time.Now()
-	err := validateUser(user)
+func (s *serviceImpl) Update(ctx context.Context, objectID *primitive.ObjectID, userRequest *dto.UserRequest) error {
+	err := validateUser(userRequest)
 	if err != nil {
 		return err
 	}
 
-	if len(user.Password) > 0 {
-		err = validatePassword(err, user)
+	if len(userRequest.Password) > 0 {
+		err = validatePassword(err, userRequest)
 		if err != nil {
 			return err
 		}
 
-		user.Password, err = security.HashPassword(user.Password)
+		userRequest.Password, err = security.HashPassword(userRequest.Password)
 		if err != nil {
 			return err
 		}
 	}
 
-	countUpdated, err := s.repository.Update(ctx, user)
+	user := userRequest.ToUser()
+	user.ID = *objectID
+	user.UpdatedAt = time.Now()
+
+	countUpdated, err := s.repository.Update(ctx, &user)
 	log.Printf("updated %d documents", countUpdated)
 
 	return err
@@ -111,7 +112,7 @@ func (s *serviceImpl) Delete(ctx context.Context, objectId *primitive.ObjectID) 
 	return err
 }
 
-func validateUser(user *model.User) error {
+func validateUser(user *dto.UserRequest) error {
 	validationErrors := errors.ValidationError{}
 	validationErrors.Append(createNameValidatorFunc()(user.Name))
 	validationErrors.Append(createBirthdayValidatorFunc()(user.Birthday))
@@ -123,7 +124,7 @@ func validateUser(user *model.User) error {
 	return nil
 }
 
-func validatePassword(err error, user *model.User) error {
+func validatePassword(err error, user *dto.UserRequest) error {
 	err = createPasswordValidationFunc()(user.Password)
 	if err != nil {
 		return &errors.ValidationError{
