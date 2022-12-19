@@ -18,7 +18,7 @@ swagger-setup:
 	alias swagger='docker run --rm -it  --user $(id -u):$(id -g) -e GOCACHE=/tmp -e  GOPATH=$(go env GOPATH):/go -v $HOME:$HOME -w $(pwd) quay.io/goswagger/swagger'
 
 swagger-docs:
-	swagger generate spec -m -o ./swagger.json
+	swagger generate spec -i ./swagger.yml -m -o ./swagger.json
 
 # if you didn't started the mongodb container, you can run this command
 run-all:

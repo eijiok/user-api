@@ -30,6 +30,9 @@ type ListUserResponse struct {
  *
  * Fetch the registered users
  *
+ * Security:
+ * - bearerAuth: []
+ *
  * Produces:
  * - application/json
  *
@@ -72,6 +75,7 @@ type CreateUserResponse struct {
  * swagger:route POST /api/users Users CreateUserRequest
  *
  * Creates a user from the request parameters
+ *
  *
  * Produces:
  * - application/json
@@ -118,6 +122,9 @@ type ReadUserResponse struct {
  * swagger:route GET /api/users/{userId} Users ReadUsers
  *
  * Fetches a user from the path parameter
+ *
+ * Security:
+ * - bearerAuth: []
  *
  * Parameters:
  *   + name: userId
@@ -175,6 +182,9 @@ type UpdateUserResponse struct {
  *
  * Updates a user from the request parameters
  *
+ * Security:
+ * - bearerAuth: []
+ *
  * Parameters:
  *   + name: userId
  *     in: path
@@ -222,6 +232,9 @@ func (controller *controllerImpl) Update(writer http.ResponseWriter, request *ht
  * swagger:route DELETE /api/users/{userId} Users ReadUsers
  *
  * Deletes a user from the path parameters
+ *
+ * Security:
+ * - bearerAuth: []
  *
  * Parameters:
  *   + name: userId

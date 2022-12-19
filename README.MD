@@ -49,9 +49,9 @@ go run main.go
 `POST /api/users`
 ```sh
     curl --request POST \
-        -d '{"name":"Eiji", "age":28}' \
+        -d '{"name":"Eiji", "age":28, "password":"asdfqwer}' \
         --url http://localhost:8080/api/users \
-        --header 'Authorization: test-authorization-header' \
+        --header 'Authorization: user-authorization-header' \
         --header 'Content-Type: application/json' 
 ``` 
 
@@ -61,7 +61,7 @@ go run main.go
 ```sh
     curl --request GET \
         --url http://localhost:8080/api/users \
-        --header 'Authorization: test-authorization-header' \
+        --header 'Authorization: user-authorization-header' \
         --header 'Content-Type: application/json' 
 ``` 
 
@@ -70,7 +70,7 @@ go run main.go
 ```sh
     curl --request GET \
         --url http://localhost:8080/api/users/639e4c9a11dc6b0e64699ff7 \
-        --header 'Authorization: test-authorization-header' \
+        --header 'Authorization: user-authorization-header' \
         --header 'Content-Type: application/json' 
 ``` 
 
@@ -80,7 +80,7 @@ go run main.go
     curl --request PUT \
         -d '{"name":"Eiji", "age":31}' \
         --url http://localhost:8080/api/users/639e4c9a11dc6b0e64699ff7 \
-        --header 'Authorization: test-authorization-header' \
+        --header 'Authorization: user-authorization-header' \
         --header 'Content-Type: application/json' 
 ``` 
 
@@ -90,6 +90,12 @@ go run main.go
 ```sh
     curl --request DELETE \
         --url http://localhost:8080/api/users/639e4c9a11dc6b0e64699ff7 \
-        --header 'Authorization: test-authorization-header' \
+        --header 'Authorization: user-authorization-header' \
         --header 'Content-Type: application/json' 
 ``` 
+
+### TO DO:
+
+- Create an authentication using the saved email/password
+- Increase coverage tests
+- Improve the generated swagger document

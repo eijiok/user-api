@@ -3,6 +3,13 @@
   "paths": {
     "/api/users": {
       "get": {
+        "security": [
+          {
+            "bearerAuth": [
+              "[]"
+            ]
+          }
+        ],
         "description": "Fetch the registered users",
         "produces": [
           "application/json"
@@ -58,6 +65,13 @@
     },
     "/api/users/{userId}": {
       "get": {
+        "security": [
+          {
+            "bearerAuth": [
+              "[]"
+            ]
+          }
+        ],
         "description": "Fetches a user from the path parameter",
         "produces": [
           "application/json"
@@ -88,6 +102,13 @@
         }
       },
       "put": {
+        "security": [
+          {
+            "bearerAuth": [
+              "[]"
+            ]
+          }
+        ],
         "description": "Updates a user from the request parameters",
         "produces": [
           "application/json"
@@ -130,6 +151,13 @@
         }
       },
       "delete": {
+        "security": [
+          {
+            "bearerAuth": [
+              "[]"
+            ]
+          }
+        ],
         "description": "Deletes a user from the path parameters",
         "produces": [
           "application/json"
@@ -295,6 +323,13 @@
       "schema": {
         "$ref": "#/definitions/UserResponse"
       }
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
     }
   }
 }
