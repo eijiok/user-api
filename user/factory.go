@@ -4,6 +4,7 @@ import (
 	"github.com/eijiok/user-api/db"
 	"github.com/eijiok/user-api/interfaces"
 	"github.com/eijiok/user-api/middleware"
+	"github.com/eijiok/user-api/security"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -26,7 +27,7 @@ func (factory *factoryImpl) GetController() interfaces.UserController {
 
 func (factory *factoryImpl) GetService() interfaces.UserService {
 	if factory.service == nil {
-		factory.service = NewServiceImpl(factory.GetRepository())
+		factory.service = NewServiceImpl(factory.GetRepository(), security.HashPassword)
 	}
 	return factory.service
 }

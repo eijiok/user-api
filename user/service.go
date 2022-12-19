@@ -6,6 +6,7 @@ import (
 	"github.com/eijiok/user-api/errors"
 	"github.com/eijiok/user-api/interfaces"
 	"github.com/eijiok/user-api/model"
+	"github.com/eijiok/user-api/security"
 	"github.com/eijiok/user-api/validators"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
@@ -13,12 +14,14 @@ import (
 )
 
 type serviceImpl struct {
-	repository interfaces.UserRepository
+	repository   interfaces.UserRepository
+	hashPassword func(password string) (string, error)
 }
 
-func NewServiceImpl(repository interfaces.UserRepository) interfaces.UserService {
+func NewServiceImpl(repository interfaces.UserRepository, hashPassword func(password string) (string, error)) interfaces.UserService {
 	return &serviceImpl{
-		repository: repository,
+		repository:   repository,
+		hashPassword: hashPassword,
 	}
 }
 
@@ -43,11 +46,15 @@ func (s *serviceImpl) Save(ctx context.Context, user *model.User) (*dto.UserResp
 	if err != nil {
 		return nil, err
 	}
-	err = validateRequiredPassword()(user.Password)
+	err = createPasswordValidationFunc()(user.Password)
 	if err != nil {
 		return nil, &errors.ValidationError{
 			Errs: []error{err},
 		}
+	}
+	user.Password, err = s.hashPassword(user.Password)
+	if err != nil {
+		return nil, err
 	}
 
 	user.CreatedAt = time.Now()
@@ -65,16 +72,83 @@ func (s *serviceImpl) Save(ctx context.Context, user *model.User) (*dto.UserResp
 	return &dtoUser, nil
 }
 
+func (s *serviceImpl) GetById(ctx context.Context, objectID *primitive.ObjectID) (*dto.UserResponse, error) {
+	user, err := s.repository.GetById(ctx, objectID)
+	dtoUser := dto.UserResponse{}
+	dtoUser.FromUserModel(user)
+	return &dtoUser, err
+}
+
+func (s *serviceImpl) Update(ctx context.Context, objectID *primitive.ObjectID, user *model.User) error {
+	user.ID = *objectID
+	user.UpdatedAt = time.Now()
+	err := validateUser(user)
+	if err != nil {
+		return err
+	}
+
+	if len(user.Password) > 0 {
+		err = validatePassword(err, user)
+		if err != nil {
+			return err
+		}
+
+		user.Password, err = security.HashPassword(user.Password)
+		if err != nil {
+			return err
+		}
+	}
+
+	countUpdated, err := s.repository.Update(ctx, user)
+	log.Printf("updated %d documents", countUpdated)
+
+	return err
+}
+
+func (s *serviceImpl) Delete(ctx context.Context, objectId *primitive.ObjectID) error {
+	countDeleted, err := s.repository.Delete(ctx, objectId)
+	log.Printf("deleted %d documents", countDeleted)
+	return err
+}
+
 func validateUser(user *model.User) error {
 	validationErrors := errors.ValidationError{}
-	validationErrors.Append(nameValidator()(user.Name))
-	validationErrors.Append(validateBirthday()(user.Birthday))
-	validationErrors.Append(validateEmail()(user.Email))
+	validationErrors.Append(createNameValidatorFunc()(user.Name))
+	validationErrors.Append(createBirthdayValidatorFunc()(user.Birthday))
+	validationErrors.Append(createEmailValidatorFunc()(user.Email))
 
 	if validationErrors.HasErrors() {
 		return &validationErrors
 	}
 	return nil
+}
+
+func validatePassword(err error, user *model.User) error {
+	err = createPasswordValidationFunc()(user.Password)
+	if err != nil {
+		return &errors.ValidationError{
+			Errs: []error{err},
+		}
+	}
+	return nil
+}
+
+func createNameValidatorFunc() func(value any) error {
+	maxLength := 50
+	return newFieldValidator("name", validators.ValidateRequired, validators.ValidateStringLength(nil, &maxLength))
+}
+
+func createPasswordValidationFunc() func(value any) error {
+	return newFieldValidator("password", validators.ValidateRequired, validators.ValidatorPassword)
+}
+
+func createEmailValidatorFunc() func(value any) error {
+	return newFieldValidator("email", validators.ValidateRequired, validators.ValidatorEmail)
+}
+
+func createBirthdayValidatorFunc() func(value any) error {
+	now := time.Now()
+	return newFieldValidator("birthday", validators.DateTimeValidator(nil, &now))
 }
 
 func newFieldValidator(field string, validatorSlice ...validators.Validate) func(value any) error {
@@ -90,57 +164,4 @@ func newFieldValidator(field string, validatorSlice ...validators.Validate) func
 		}
 		return nil
 	}
-}
-
-func nameValidator() func(value any) error {
-	maxLength := 50
-	return newFieldValidator("name", validators.ValidateRequired, validators.ValidateStringLength(nil, &maxLength))
-}
-
-func validateRequiredPassword() func(value any) error {
-	return newFieldValidator("password", validators.ValidateRequired, validators.ValidatorPassword)
-}
-func validatePassword() func(value any) error {
-	return newFieldValidator("password", validators.ValidatorPassword)
-}
-
-func validateEmail() func(value any) error {
-	return newFieldValidator("email", validators.ValidateRequired, validators.ValidatorEmail)
-}
-
-func validateBirthday() func(value any) error {
-	now := time.Now()
-	return newFieldValidator("birthday", validators.DateTimeValidator(nil, &now))
-}
-
-func (s *serviceImpl) GetById(ctx context.Context, objectID *primitive.ObjectID) (*dto.UserResponse, error) {
-	user, err := s.repository.GetById(ctx, objectID)
-	dtoUser := dto.UserResponse{}
-	dtoUser.FromUserModel(user)
-	return &dtoUser, err
-}
-
-func (s *serviceImpl) Update(ctx context.Context, objectID *primitive.ObjectID, user *model.User) error {
-	user.ID = *objectID
-	user.UpdatedAt = time.Now()
-	err := validateUser(user)
-	if err != nil {
-		return err
-	}
-	err = validatePassword()(user.Password)
-	if err != nil {
-		return &errors.ValidationError{
-			Errs: []error{err},
-		}
-	}
-	countUpdated, err := s.repository.Update(ctx, user)
-	log.Printf("updated %d documents", countUpdated)
-
-	return err
-}
-
-func (s *serviceImpl) Delete(ctx context.Context, objectId *primitive.ObjectID) error {
-	countDeleted, err := s.repository.Delete(ctx, objectId)
-	log.Printf("deleted %d documents", countDeleted)
-	return err
 }
