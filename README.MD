@@ -45,18 +45,30 @@ go run main.go
 
 ### User API
 
+The user API can be accessed on:
+
+    http://localhost:8080/docs
+
+
+
 #### Creating a user
+Create a user.
+The fields: name, email and password are required
+It is a not secured endpoint to allow users to register to the application.
 `POST /api/users`
 ```sh
     curl --request POST \
-        -d '{"name":"Eiji", "age":28, "password":"asdfqwer}' \
+        -d '{"name":"Eiji", "password":"asdfqwer", "address":"rua xpto, 123", "birthday": "1981-04-14T07:01:02.000Z", "email":"eijiok@gmail.com"}' \
         --url http://localhost:8080/api/users \
-        --header 'Authorization: user-authorization-header' \
         --header 'Content-Type: application/json' 
 ``` 
 
 
-#### Listing users 
+#### List users 
+
+By now it has to have the header with Authorization parameter set with anything. 
+It will change after JWT implementation. 
+
 `GET /api/users`
 ```sh
     curl --request GET \
@@ -66,20 +78,26 @@ go run main.go
 ``` 
 
 #### Read a user
+
+It has to have the header with Authorization parameter.
+
 `GET /api/users/{id}`
 ```sh
     curl --request GET \
-        --url http://localhost:8080/api/users/639e4c9a11dc6b0e64699ff7 \
+        --url http://localhost:8080/api/users/639e4dd6892ab2a78e806f94 \
         --header 'Authorization: user-authorization-header' \
         --header 'Content-Type: application/json' 
 ``` 
 
 #### Update a user
+
+It has to have the header with Authorization parameter.
+
 `PUT /api/users/{id}` 
 ```sh
     curl --request PUT \
-        -d '{"name":"Eiji", "age":31}' \
-        --url http://localhost:8080/api/users/639e4c9a11dc6b0e64699ff7 \
+        -d '{"name":"Marcos"}' \
+        --url http://localhost:8080/api/users/639e4dd6892ab2a78e806f94 \
         --header 'Authorization: user-authorization-header' \
         --header 'Content-Type: application/json' 
 ``` 
@@ -89,13 +107,13 @@ go run main.go
 `DELETE /api/users/{id}`
 ```sh
     curl --request DELETE \
-        --url http://localhost:8080/api/users/639e4c9a11dc6b0e64699ff7 \
+        --url http://localhost:8080/api/users/639e4dd6892ab2a78e806f94 \
         --header 'Authorization: user-authorization-header' \
         --header 'Content-Type: application/json' 
 ``` 
 
 ### TO DO:
 
-- Create an authentication using the saved email/password
+- Implement a JWT authentication using the saved email/password
 - Increase coverage tests
 - Improve the generated swagger document
