@@ -8,8 +8,9 @@ import (
 )
 
 type userRouterImpl struct {
-	controller  interfaces.UserController
-	middlewares []interfaces.MiddlewareFunc
+	controller          interfaces.UserController
+	secureMiddlewares   []interfaces.MiddlewareFunc
+	insecureMiddlewares []interfaces.MiddlewareFunc
 }
 
 func (routes *userRouterImpl) ConfigRoutes(apiRouter *mux.Router, pathPrefix string, pathUserApi string) {
@@ -17,49 +18,57 @@ func (routes *userRouterImpl) ConfigRoutes(apiRouter *mux.Router, pathPrefix str
 		PathPrefix(pathPrefix).
 		Path(pathUserApi).
 		Methods(http.MethodGet).
-		HandlerFunc(routes.setHandler(routes.controller.List))
+		HandlerFunc(routes.setSecureHandler(routes.controller.List))
 
 	apiRouter.
 		PathPrefix(pathPrefix).
 		Path(pathUserApi).
 		Methods(http.MethodPost).
-		HandlerFunc(routes.setHandler(routes.controller.Create))
+		HandlerFunc(routes.setInsecureHandler(routes.controller.Create))
 
 	apiRouter.
 		PathPrefix(pathPrefix).
 		Path(pathUserApi + "/{id}").
 		Methods(http.MethodGet).
-		HandlerFunc(routes.setHandler(routes.controller.Read))
+		HandlerFunc(routes.setSecureHandler(routes.controller.Read))
 
 	apiRouter.
 		PathPrefix(pathPrefix).
 		Path(pathUserApi + "/{id}").
 		Methods(http.MethodPut).
-		HandlerFunc(routes.setHandler(routes.controller.Update))
+		HandlerFunc(routes.setSecureHandler(routes.controller.Update))
 
 	apiRouter.
 		PathPrefix(pathPrefix).
 		Path(pathUserApi + "/{id}").
 		Methods(http.MethodDelete).
-		HandlerFunc(routes.setHandler(routes.controller.Delete))
+		HandlerFunc(routes.setSecureHandler(routes.controller.Delete))
 }
 
-func (routes *userRouterImpl) setHandler(handler interfaces.RequestResponseErrorFunc) interfaces.RequestResponseFunc {
-
-	return utils.RequestResponseErrorHandler(routes.addMiddlewares(handler))
+func (routes *userRouterImpl) setSecureHandler(handler interfaces.RequestResponseErrorFunc) interfaces.RequestResponseFunc {
+	return utils.RequestResponseErrorHandler(routes.addMiddlewares(handler, routes.secureMiddlewares))
 }
 
-func (routes *userRouterImpl) addMiddlewares(handler interfaces.RequestResponseErrorFunc) interfaces.RequestResponseErrorFunc {
+func (routes *userRouterImpl) setInsecureHandler(handler interfaces.RequestResponseErrorFunc) interfaces.RequestResponseFunc {
+	return utils.RequestResponseErrorHandler(routes.addMiddlewares(handler, routes.insecureMiddlewares))
+}
+
+func (routes *userRouterImpl) addMiddlewares(handler interfaces.RequestResponseErrorFunc, middlewares []interfaces.MiddlewareFunc) interfaces.RequestResponseErrorFunc {
 	currHandler := handler
-	for _, middleware := range routes.middlewares {
+	for _, middleware := range middlewares {
 		currHandler = middleware(currHandler)
 	}
 	return currHandler
 }
 
-func NewUserRouter(controller interfaces.UserController, middlewares ...interfaces.MiddlewareFunc) interfaces.UserRouter {
+func NewUserRouter(
+	controller interfaces.UserController,
+	secureMiddlewares []interfaces.MiddlewareFunc,
+	insecureMiddlewares []interfaces.MiddlewareFunc,
+) interfaces.UserRouter {
 	return &userRouterImpl{
-		controller:  controller,
-		middlewares: middlewares,
+		controller:          controller,
+		secureMiddlewares:   secureMiddlewares,
+		insecureMiddlewares: insecureMiddlewares,
 	}
 }

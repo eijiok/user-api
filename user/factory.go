@@ -43,8 +43,8 @@ func (factory *factoryImpl) GetRouter() interfaces.UserRouter {
 	if factory.router == nil {
 		factory.router = NewUserRouter(
 			factory.GetController(),
-			middleware.CorsMiddleware,
-			middleware.AuthMiddleware,
+			[]interfaces.MiddlewareFunc{middleware.CorsMiddleware, middleware.AuthMiddleware},
+			[]interfaces.MiddlewareFunc{middleware.CorsMiddleware},
 		)
 	}
 	return factory.router
