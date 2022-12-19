@@ -33,6 +33,21 @@ func (controller *controllerImpl) List(writer http.ResponseWriter, request *http
 	return nil
 }
 
+// swagger:parameters CreateUserRequest
+type CreateUserRequest struct {
+	// Request to create a new User
+	//
+	// required: true
+	// in: body
+	CreateUserRequest dto.UserRequest
+}
+
+// swagger:response CreateUserResponse
+type CreateUserResponse struct {
+	// in: body
+	Body dto.UserResponse
+}
+
 // Create
 /**
  * swagger:route POST /api/users Users CreateUserRequest
@@ -73,6 +88,33 @@ func (controller *controllerImpl) Create(writer http.ResponseWriter, request *ht
 	return nil
 }
 
+// swagger:response ReadUserResponse
+type ReadUserResponse struct {
+	// in: body
+	Body dto.UserResponse
+}
+
+// Read
+/**
+ * swagger:route GET /api/users/{userId} Users ReadUsers
+ *
+ * Fetch a user from the path parameters
+ *
+ * Parameters:
+ *   + name: userId
+ *     in: path
+ *     description: the user ID
+ *     required: true
+ *     type: string
+ *
+ * Produces:
+ * - application/json
+ *
+ * Responses:
+ *    200: ReadUserResponse
+ *    400:
+ *    500:
+ */
 func (controller *controllerImpl) Read(writer http.ResponseWriter, request *http.Request) *errors.HttpError {
 	id := utils.ReadParam(request, "id")
 	objectId, httpError := utils.IdToObjectId(id)

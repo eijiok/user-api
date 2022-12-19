@@ -6,15 +6,6 @@ import (
 	"time"
 )
 
-// swagger:parameters CreateUserRequest
-type CreateUserRequest struct {
-	// Request to create a new User
-	//
-	// required: true
-	// in: body
-	CreateUserRequest UserRequest
-}
-
 type UserRequest struct {
 	Name     string    `json:"name"`
 	Birthday time.Time `json:"birthday"`
@@ -31,12 +22,6 @@ func (req *UserRequest) ToUser() model.User {
 		Birthday: req.Birthday,
 		Address:  req.Address,
 	}
-}
-
-// swagger:response CreateUserResponse
-type CreateUserResponse struct {
-	// in: body
-	Body UserResponse
 }
 
 type UserResponse struct {

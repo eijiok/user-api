@@ -37,6 +37,38 @@
           }
         }
       }
+    },
+    "/api/users/{userId}": {
+      "get": {
+        "description": "Fetch a user from the path parameters",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Users"
+        ],
+        "operationId": "ReadUsers",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "the user ID",
+            "name": "userId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ReadUserResponse"
+          },
+          "400": {
+            "description": ""
+          },
+          "500": {
+            "description": ""
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -148,6 +180,12 @@
   },
   "responses": {
     "CreateUserResponse": {
+      "description": "",
+      "schema": {
+        "$ref": "#/definitions/UserResponse"
+      }
+    },
+    "ReadUserResponse": {
       "description": "",
       "schema": {
         "$ref": "#/definitions/UserResponse"
