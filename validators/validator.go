@@ -28,6 +28,10 @@ func ValidateRequired(value any) string {
 }
 
 func ValidatorPassword(value any) string {
+	if value == "" {
+		return ""
+	}
+
 	stringValue, isOk := value.(string)
 	if !isOk {
 		return "not a string value"
@@ -68,10 +72,14 @@ func ValidateStringLength(minSize *int, maxSize *int) func(any) string {
 
 func DateTimeValidator(minTime *time.Time, maxTime *time.Time) func(any) string {
 	return func(value any) string {
+		if value == nil {
+			return ""
+		}
 		timeValue, isOk := value.(time.Time)
 		if !isOk {
 			return "not a valid time format"
 		}
+
 		if timeValue.IsZero() {
 			return ""
 		}

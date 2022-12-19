@@ -42,7 +42,11 @@ func (controller *controllerImpl) Create(writer http.ResponseWriter, request *ht
 
 	savedUser, err := controller.service.Save(request.Context(), &user)
 	if err != nil {
-		return errors.NewInternalServerErrorWithMessage(&err, "Error to save the user")
+		errorStatusCode := http.StatusInternalServerError
+		if _, ok := err.(*errors.ValidationError); ok {
+			errorStatusCode = http.StatusBadRequest
+		}
+		return errors.NewHttpError(errorStatusCode, "Error to save the user", &err)
 	}
 
 	writer.WriteHeader(http.StatusCreated)
@@ -89,7 +93,11 @@ func (controller *controllerImpl) Update(writer http.ResponseWriter, request *ht
 
 	err = controller.service.Update(request.Context(), &objectId, user)
 	if err != nil {
-		return errors.NewInternalServerError(&err)
+		errorStatusCode := http.StatusInternalServerError
+		if _, ok := err.(*errors.ValidationError); ok {
+			errorStatusCode = http.StatusBadRequest
+		}
+		return errors.NewHttpError(errorStatusCode, "Error to update the user", &err)
 	}
 
 	writer.WriteHeader(http.StatusOK)

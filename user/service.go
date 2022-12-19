@@ -43,11 +43,21 @@ func (s *serviceImpl) Save(ctx context.Context, user *model.User) (*dto.UserResp
 	if err != nil {
 		return nil, err
 	}
+	err = validateRequiredPassword()(user.Password)
+	if err != nil {
+		return nil, &errors.ValidationError{
+			Errs: []error{err},
+		}
+	}
+
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
 
 	id, err := s.repository.Save(ctx, user)
 	if err != nil {
 		return nil, err
 	}
+
 	dtoUser := dto.UserResponse{}
 	dtoUser.FromUserModel(user)
 	dtoUser.ID = *id
@@ -59,7 +69,6 @@ func validateUser(user *model.User) error {
 	validationErrors := errors.ValidationError{}
 	validationErrors.Append(nameValidator()(user.Name))
 	validationErrors.Append(validateBirthday()(user.Birthday))
-	validationErrors.Append(validatePassword()(user.Password))
 	validationErrors.Append(validateEmail()(user.Email))
 
 	if validationErrors.HasErrors() {
@@ -88,8 +97,11 @@ func nameValidator() func(value any) error {
 	return newFieldValidator("name", validators.ValidateRequired, validators.ValidateStringLength(nil, &maxLength))
 }
 
-func validatePassword() func(value any) error {
+func validateRequiredPassword() func(value any) error {
 	return newFieldValidator("password", validators.ValidateRequired, validators.ValidatorPassword)
+}
+func validatePassword() func(value any) error {
+	return newFieldValidator("password", validators.ValidatorPassword)
 }
 
 func validateEmail() func(value any) error {
@@ -110,8 +122,20 @@ func (s *serviceImpl) GetById(ctx context.Context, objectID *primitive.ObjectID)
 
 func (s *serviceImpl) Update(ctx context.Context, objectID *primitive.ObjectID, user *model.User) error {
 	user.ID = *objectID
+	user.UpdatedAt = time.Now()
+	err := validateUser(user)
+	if err != nil {
+		return err
+	}
+	err = validatePassword()(user.Password)
+	if err != nil {
+		return &errors.ValidationError{
+			Errs: []error{err},
+		}
+	}
 	countUpdated, err := s.repository.Update(ctx, user)
 	log.Printf("updated %d documents", countUpdated)
+
 	return err
 }
 
