@@ -18,6 +18,25 @@ func NewControllerImpl(service interfaces.UserService) interfaces.UserController
 	}
 }
 
+// swagger:response ListUserResponse
+type ListUserResponse struct {
+	// in: body
+	Body []dto.UserResponse
+}
+
+// List
+/**
+ * swagger:route GET /api/users Users ListUsers
+ *
+ * Fetch the registered users
+ *
+ * Produces:
+ * - application/json
+ *
+ * Responses:
+ *    200: ListUserResponse
+ *    500:
+ */
 func (controller *controllerImpl) List(writer http.ResponseWriter, request *http.Request) *errors.HttpError {
 	userList, err := controller.service.List(request.Context())
 	if err != nil {
@@ -98,7 +117,7 @@ type ReadUserResponse struct {
 /**
  * swagger:route GET /api/users/{userId} Users ReadUsers
  *
- * Fetch a user from the path parameters
+ * Fetches a user from the path parameter
  *
  * Parameters:
  *   + name: userId
@@ -135,6 +154,43 @@ func (controller *controllerImpl) Read(writer http.ResponseWriter, request *http
 	return nil
 }
 
+// swagger:parameters UpdateUserRequest
+type UpdateUserRequest struct {
+	// Request to update a new User
+	//
+	// required: true
+	// in: body
+	UpdateUserRequest dto.UserRequest
+}
+
+// swagger:response UpdateUserResponse
+type UpdateUserResponse struct {
+	// in: body
+	Body dto.UserResponse
+}
+
+// Update
+/**
+ * swagger:route PUT /api/users/{userId} Users UpdateUserRequest
+ *
+ * Updates a user from the request parameters
+ *
+ * Parameters:
+ *   + name: userId
+ *     in: path
+ *     description: the user ID
+ *     required: true
+ *     type: string
+ *
+ * Produces:
+ * - application/json
+ *
+ * Responses:
+ *    200: UpdateUserResponse
+ *    400:
+ *    401:
+ *    500:
+ */
 func (controller *controllerImpl) Update(writer http.ResponseWriter, request *http.Request) *errors.HttpError {
 	id := utils.ReadParam(request, "id")
 	user := &dto.UserRequest{}
@@ -161,6 +217,27 @@ func (controller *controllerImpl) Update(writer http.ResponseWriter, request *ht
 	return nil
 }
 
+// Delete
+/**
+ * swagger:route DELETE /api/users/{userId} Users ReadUsers
+ *
+ * Deletes a user from the path parameters
+ *
+ * Parameters:
+ *   + name: userId
+ *     in: path
+ *     description: the user ID
+ *     required: true
+ *     type: string
+ *
+ * Produces:
+ * - application/json
+ *
+ * Responses:
+ *    200:
+ *    400:
+ *    500:
+ */
 func (controller *controllerImpl) Delete(writer http.ResponseWriter, request *http.Request) *errors.HttpError {
 	id := utils.ReadParam(request, "id")
 	objectId, httpError := utils.IdToObjectId(id)

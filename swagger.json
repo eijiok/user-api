@@ -2,6 +2,24 @@
   "swagger": "2.0",
   "paths": {
     "/api/users": {
+      "get": {
+        "description": "Fetch the registered users",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Users"
+        ],
+        "operationId": "ListUsers",
+        "responses": {
+          "200": {
+            "$ref": "#/responses/ListUserResponse"
+          },
+          "500": {
+            "description": ""
+          }
+        }
+      },
       "post": {
         "description": "Creates a user from the request parameters",
         "produces": [
@@ -40,7 +58,7 @@
     },
     "/api/users/{userId}": {
       "get": {
-        "description": "Fetch a user from the path parameters",
+        "description": "Fetches a user from the path parameter",
         "produces": [
           "application/json"
         ],
@@ -60,6 +78,78 @@
         "responses": {
           "200": {
             "$ref": "#/responses/ReadUserResponse"
+          },
+          "400": {
+            "description": ""
+          },
+          "500": {
+            "description": ""
+          }
+        }
+      },
+      "put": {
+        "description": "Updates a user from the request parameters",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Users"
+        ],
+        "operationId": "UpdateUserRequest",
+        "parameters": [
+          {
+            "description": "Request to update a new User",
+            "name": "UpdateUserRequest",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserRequest"
+            }
+          },
+          {
+            "type": "string",
+            "description": "the user ID",
+            "name": "userId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/responses/UpdateUserResponse"
+          },
+          "400": {
+            "description": ""
+          },
+          "401": {
+            "description": ""
+          },
+          "500": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "description": "Deletes a user from the path parameters",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Users"
+        ],
+        "operationId": "ReadUsers",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "the user ID",
+            "name": "userId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
           },
           "400": {
             "description": ""
@@ -185,7 +275,22 @@
         "$ref": "#/definitions/UserResponse"
       }
     },
+    "ListUserResponse": {
+      "description": "",
+      "schema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/definitions/UserResponse"
+        }
+      }
+    },
     "ReadUserResponse": {
+      "description": "",
+      "schema": {
+        "$ref": "#/definitions/UserResponse"
+      }
+    },
+    "UpdateUserResponse": {
       "description": "",
       "schema": {
         "$ref": "#/definitions/UserResponse"
