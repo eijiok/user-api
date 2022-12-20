@@ -24,6 +24,7 @@ func InitServer() error {
 	muxRouter := mux.NewRouter()
 
 	configSwaggerRoutes(muxRouter)
+	log.Printf("The swagger api documentation is on http://localhost:%s/docs ", config.Port)
 
 	configAppRoutes(mongoConfig, config, muxRouter)
 	log.Printf("The server started on port %s ", config.Port)
