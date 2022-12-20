@@ -117,4 +117,4 @@ It has to have the header with Authorization parameter.
 - Implement a JWT authentication using the saved email/password
 - Increase coverage tests
 - Improve the generated swagger document
-- Learn more about libraries and refactor the code
+- Learn more about go libraries and refactor the code
