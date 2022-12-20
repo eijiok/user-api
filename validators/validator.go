@@ -13,18 +13,23 @@ type Validate func(value any) string
 returns true if it is valid, false otherwise
 */
 func ValidateRequired(value any) string {
-	if value == nil {
+	if IsNullOrEmpty(value) {
 		return "field required"
+	}
+	return ""
+}
+
+func IsNullOrEmpty(value any) bool {
+	if value == nil {
+		return true
 	}
 	switch value.(type) {
 	case string:
-		if !(len(value.(string)) > 0) {
-			return "field required"
+		if len(value.(string)) == 0 {
+			return true
 		}
-		return ""
-	default:
-		return ""
 	}
+	return false
 }
 
 func ValidatorPassword(value any) string {

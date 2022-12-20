@@ -5,7 +5,6 @@ import (
 	"github.com/eijiok/user-api/dto"
 	"github.com/eijiok/user-api/errors"
 	"github.com/eijiok/user-api/interfaces"
-	"github.com/eijiok/user-api/security"
 	"github.com/eijiok/user-api/validators"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"log"
@@ -41,11 +40,7 @@ func (s *serviceImpl) List(ctx context.Context) ([]dto.UserResponse, error) {
 }
 
 func (s *serviceImpl) Save(ctx context.Context, userRequest *dto.UserRequest) (*dto.UserResponse, error) {
-	err := validateUser(userRequest)
-	if err != nil {
-		return nil, err
-	}
-	err = createPasswordValidationFunc()(userRequest.Password)
+	err := validateUser(userRequest, true)
 	if err != nil {
 		return nil, &errors.ValidationError{
 			Errs: []error{err},
@@ -79,18 +74,13 @@ func (s *serviceImpl) GetById(ctx context.Context, objectID *primitive.ObjectID)
 }
 
 func (s *serviceImpl) Update(ctx context.Context, objectID *primitive.ObjectID, userRequest *dto.UserRequest) error {
-	err := validateUser(userRequest)
+	err := validateUser(userRequest, false)
 	if err != nil {
 		return err
 	}
 
 	if len(userRequest.Password) > 0 {
-		err = validatePassword(err, userRequest)
-		if err != nil {
-			return err
-		}
-
-		userRequest.Password, err = security.HashPassword(userRequest.Password)
+		userRequest.Password, err = s.hashPassword(userRequest.Password)
 		if err != nil {
 			return err
 		}
@@ -112,11 +102,12 @@ func (s *serviceImpl) Delete(ctx context.Context, objectId *primitive.ObjectID) 
 	return err
 }
 
-func validateUser(user *dto.UserRequest) error {
+func validateUser(user *dto.UserRequest, required bool) error {
 	validationErrors := errors.ValidationError{}
-	validationErrors.Append(createNameValidatorFunc()(user.Name))
-	validationErrors.Append(createBirthdayValidatorFunc()(user.Birthday))
-	validationErrors.Append(createEmailValidatorFunc()(user.Email))
+	validationErrors.Append(createNameValidatorFunc(required)(user.Name))
+	validationErrors.Append(createEmailValidatorFunc(required)(user.Email))
+	validationErrors.Append(createPasswordValidationFunc(required)(user.Password))
+	validationErrors.Append(createBirthdayValidatorFunc(false)(user.Birthday))
 
 	if validationErrors.HasErrors() {
 		return &validationErrors
@@ -124,36 +115,41 @@ func validateUser(user *dto.UserRequest) error {
 	return nil
 }
 
-func validatePassword(err error, user *dto.UserRequest) error {
-	err = createPasswordValidationFunc()(user.Password)
-	if err != nil {
-		return &errors.ValidationError{
-			Errs: []error{err},
-		}
-	}
-	return nil
-}
-
-func createNameValidatorFunc() func(value any) error {
+func createNameValidatorFunc(required bool) func(value any) error {
 	maxLength := 50
-	return newFieldValidator("name", validators.ValidateRequired, validators.ValidateStringLength(nil, &maxLength))
+	return newFieldValidator("name", required, validators.ValidateStringLength(nil, &maxLength))
 }
 
-func createPasswordValidationFunc() func(value any) error {
-	return newFieldValidator("password", validators.ValidateRequired, validators.ValidatorPassword)
+func createPasswordValidationFunc(required bool) func(value any) error {
+	minLength := 5
+	maxLength := 50
+	return newFieldValidator("password", required, validators.ValidatorPassword, validators.ValidateStringLength(&minLength, &maxLength))
 }
 
-func createEmailValidatorFunc() func(value any) error {
-	return newFieldValidator("email", validators.ValidateRequired, validators.ValidatorEmail)
+func createEmailValidatorFunc(required bool) func(value any) error {
+	return newFieldValidator("email", required, validators.ValidatorEmail)
 }
 
-func createBirthdayValidatorFunc() func(value any) error {
+func createBirthdayValidatorFunc(required bool) func(value any) error {
 	now := time.Now()
-	return newFieldValidator("birthday", validators.DateTimeValidator(nil, &now))
+	return newFieldValidator("birthday", required, validators.DateTimeValidator(nil, &now))
 }
 
-func newFieldValidator(field string, validatorSlice ...validators.Validate) func(value any) error {
+func newFieldValidator(field string, required bool, validatorSlice ...validators.Validate) func(value any) error {
 	return func(value any) error {
+		if !required {
+			if validators.IsNullOrEmpty(value) {
+				return nil
+			}
+		} else {
+			requiredMessage := validators.ValidateRequired(value)
+			if len(requiredMessage) > 0 {
+				return &errors.ValidationFieldError{
+					Field:   field,
+					Message: requiredMessage,
+				}
+			}
+		}
 		for _, validator := range validatorSlice {
 			errorMessage := validator(value)
 			if len(errorMessage) > 0 {

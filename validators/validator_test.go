@@ -146,3 +146,42 @@ func TestDateTimeValidator(t *testing.T) {
 		})
 	}
 }
+
+func TestIsNullOrEmpty(t *testing.T) {
+	type args struct {
+		value any
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		{
+			name: "test nil",
+			args: args{nil},
+			want: true,
+		},
+		{
+			name: "test empty string",
+			args: args{""},
+			want: true,
+		},
+		{
+			name: "test non empty string",
+			args: args{"asdf"},
+			want: false,
+		},
+		{
+			name: "test number",
+			args: args{0},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := IsNullOrEmpty(tt.args.value); got != tt.want {
+				t.Errorf("IsNullOrEmpty() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
