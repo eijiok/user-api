@@ -75,6 +75,15 @@ func ValidateStringLength(minSize *int, maxSize *int) func(any) string {
 	}
 }
 
+func GeneralValidator(message string, validationFunction func(any) bool) func(any) string {
+	return func(value any) string {
+		if validationFunction(value) {
+			return ""
+		}
+		return message
+	}
+}
+
 func DateTimeValidator(minTime *time.Time, maxTime *time.Time) func(any) string {
 	return func(value any) string {
 		if value == nil {
@@ -104,7 +113,7 @@ func DateTimeValidator(minTime *time.Time, maxTime *time.Time) func(any) string 
 	}
 }
 
-func ValidatorEmail(value any) string {
+func ValidatorEmailFormat(value any) string {
 	email, isOk := value.(string)
 	if !isOk {
 		return "not a string value"

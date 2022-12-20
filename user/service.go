@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"github.com/eijiok/user-api/common"
 	"github.com/eijiok/user-api/dto"
 	"github.com/eijiok/user-api/errors"
 	"github.com/eijiok/user-api/interfaces"
@@ -40,7 +41,7 @@ func (s *serviceImpl) List(ctx context.Context) ([]dto.UserResponse, error) {
 }
 
 func (s *serviceImpl) Save(ctx context.Context, userRequest *dto.UserRequest) (*dto.UserResponse, error) {
-	err := validateUser(userRequest, true)
+	err := s.validateUser(nil, userRequest, true)
 	if err != nil {
 		return nil, &errors.ValidationError{
 			Errs: []error{err},
@@ -74,7 +75,7 @@ func (s *serviceImpl) GetById(ctx context.Context, objectID *primitive.ObjectID)
 }
 
 func (s *serviceImpl) Update(ctx context.Context, objectID *primitive.ObjectID, userRequest *dto.UserRequest) error {
-	err := validateUser(userRequest, false)
+	err := s.validateUser(ctx, userRequest, false)
 	if err != nil {
 		return err
 	}
@@ -102,12 +103,12 @@ func (s *serviceImpl) Delete(ctx context.Context, objectId *primitive.ObjectID) 
 	return err
 }
 
-func validateUser(user *dto.UserRequest, required bool) error {
+func (s *serviceImpl) validateUser(ctx context.Context, user *dto.UserRequest, required bool) error {
 	validationErrors := errors.ValidationError{}
-	validationErrors.Append(createNameValidatorFunc(required)(user.Name))
-	validationErrors.Append(createEmailValidatorFunc(required)(user.Email))
-	validationErrors.Append(createPasswordValidationFunc(required)(user.Password))
-	validationErrors.Append(createBirthdayValidatorFunc(false)(user.Birthday))
+	validationErrors.Append(s.createNameValidatorFunc(required)(user.Name))
+	validationErrors.Append(s.createEmailValidatorFunc(required, ctx)(user.Email))
+	validationErrors.Append(s.createPasswordValidationFunc(required)(user.Password))
+	validationErrors.Append(s.createBirthdayValidatorFunc(false)(user.Birthday))
 
 	if validationErrors.HasErrors() {
 		return &validationErrors
@@ -115,24 +116,41 @@ func validateUser(user *dto.UserRequest, required bool) error {
 	return nil
 }
 
-func createNameValidatorFunc(required bool) func(value any) error {
+func (s *serviceImpl) createNameValidatorFunc(required bool) func(value any) error {
 	maxLength := 50
 	return newFieldValidator("name", required, validators.ValidateStringLength(nil, &maxLength))
 }
 
-func createPasswordValidationFunc(required bool) func(value any) error {
+func (s *serviceImpl) createPasswordValidationFunc(required bool) func(value any) error {
 	minLength := 5
 	maxLength := 50
 	return newFieldValidator("password", required, validators.ValidatorPassword, validators.ValidateStringLength(&minLength, &maxLength))
 }
 
-func createEmailValidatorFunc(required bool) func(value any) error {
-	return newFieldValidator("email", required, validators.ValidatorEmail)
+func (s *serviceImpl) createEmailValidatorFunc(required bool, ctx context.Context) func(value any) error {
+	return newFieldValidator("email", required,
+		validators.ValidatorEmailFormat,
+		validators.GeneralValidator("Email already exists", s.DoesEmailNotExist(ctx)),
+	)
 }
 
-func createBirthdayValidatorFunc(required bool) func(value any) error {
+func (s *serviceImpl) createBirthdayValidatorFunc(required bool) func(value any) error {
 	now := time.Now()
 	return newFieldValidator("birthday", required, validators.DateTimeValidator(nil, &now))
+}
+
+func (s *serviceImpl) DoesEmailNotExist(ctx context.Context) func(value any) bool {
+	return func(value any) bool {
+		email, isOk := value.(string)
+		if !isOk {
+			return false
+		}
+		count, err := s.repository.Count(ctx, &common.UserFilter{Email: &email})
+		if err != nil {
+			return false
+		}
+		return count == 0
+	}
 }
 
 func newFieldValidator(field string, required bool, validatorSlice ...validators.Validate) func(value any) error {

@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"context"
+	"github.com/eijiok/user-api/common"
 	"github.com/eijiok/user-api/dto"
 	"github.com/eijiok/user-api/errors"
 	"github.com/eijiok/user-api/model"
@@ -45,6 +46,7 @@ type UserRepository interface {
 	Save(ctx context.Context, user *model.User) (*primitive.ObjectID, error)
 	Update(ctx context.Context, user *model.User) (int64, error)
 	Delete(ctx context.Context, id *primitive.ObjectID) (int64, error)
+	Count(ctx context.Context, filter *common.UserFilter) (int64, error)
 }
 
 type UserRouter interface {

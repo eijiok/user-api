@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"github.com/eijiok/user-api/common"
 	"github.com/eijiok/user-api/interfaces"
 	"github.com/eijiok/user-api/model"
 	"go.mongodb.org/mongo-driver/bson"
@@ -57,6 +58,15 @@ func (r repositoryImpl) Delete(ctx context.Context, id *primitive.ObjectID) (int
 	filter := bson.D{{"_id", id}}
 	result, err := r.collection.DeleteOne(ctx, filter)
 	return result.DeletedCount, err
+}
+
+func (r repositoryImpl) Count(ctx context.Context, filter *common.UserFilter) (int64, error) {
+	bsonFilter := bson.D{{"email", *filter.Email}}
+	count, err := r.collection.CountDocuments(ctx, bsonFilter)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }
 
 func NewUserRepository(database *mongo.Database) interfaces.UserRepository {
