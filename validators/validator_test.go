@@ -64,6 +64,16 @@ func TestValidatorPassword(t *testing.T) {
 			args: args{"asdf"},
 			want: "the password should have more than 5 characters",
 		},
+		{
+			name: "Invalid password",
+			args: args{123},
+			want: "not a string value",
+		},
+		{
+			name: "Empty string is not validated",
+			args: args{""},
+			want: "",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -103,6 +113,16 @@ func TestValidateStringLength(t *testing.T) {
 			args: args{&valueTwo, &valueThree, "a"},
 			want: "the length cannot be lower than 2",
 		},
+		{
+			name: "nil string is not validated",
+			args: args{&valueTwo, &valueThree, nil},
+			want: "",
+		},
+		{
+			name: "numbers are invalid values",
+			args: args{&valueTwo, &valueThree, 123},
+			want: "not a string value",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -117,7 +137,7 @@ func TestDateTimeValidator(t *testing.T) {
 	type args struct {
 		minTime *time.Time
 		maxTime *time.Time
-		value   time.Time
+		value   any
 	}
 	yesterday := time.Date(2022, 12, 17, 23, 12, 30, 0, time.UTC)
 	today := time.Date(2022, 12, 18, 23, 12, 30, 0, time.UTC)
@@ -133,9 +153,29 @@ func TestDateTimeValidator(t *testing.T) {
 			want: "",
 		},
 		{
-			name: "test DateTime between after date",
+			name: "test DateTime after max date",
 			args: args{&yesterday, &today, tomorrow},
 			want: "the date time Mon Dec 19 23:12:30 2022 cannot be after than Sun Dec 18 23:12:30 2022",
+		},
+		{
+			name: "test DateTime before min date",
+			args: args{&today, &tomorrow, yesterday},
+			want: "the date time Sat Dec 17 23:12:30 2022 cannot be before than Sun Dec 18 23:12:30 2022",
+		},
+		{
+			name: "nil is not validated",
+			args: args{&yesterday, &today, nil},
+			want: "",
+		},
+		{
+			name: "zero time is not validated",
+			args: args{&yesterday, &today, time.Time{}},
+			want: "",
+		},
+		{
+			name: "numbers are invalid",
+			args: args{&yesterday, &today, 123},
+			want: "not a valid time format",
 		},
 	}
 	for _, tt := range tests {
@@ -181,6 +221,71 @@ func TestIsNullOrEmpty(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := IsNullOrEmpty(tt.args.value); got != tt.want {
 				t.Errorf("IsNullOrEmpty() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestValidatorEmailFormat(t *testing.T) {
+	type args struct {
+		value any
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "test email validator",
+			args: args{"eiji.ok@gmail.com"},
+			want: "",
+		},
+		{
+			name: "test email validator",
+			args: args{"eiji.okgmail.com"},
+			want: "invalid email format",
+		},
+		{
+			name: "test email validator",
+			args: args{1234},
+			want: "not a string value",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ValidatorEmailFormat(tt.args.value); got != tt.want {
+				t.Errorf("ValidatorEmailFormat() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGeneralValidator(t *testing.T) {
+	type args struct {
+		message            string
+		validationFunction func(any) bool
+		value              any
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{
+			name: "test generic invalid",
+			args: args{"generic error", func(v any) bool { return false }, 1},
+			want: "generic error",
+		},
+		{
+			name: "test generic valid",
+			args: args{"generic error", func(v any) bool { return true }, 1},
+			want: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := GeneralValidator(tt.args.message, tt.args.validationFunction)(tt.args.value); got != tt.want {
+				t.Errorf("GeneralValidator() = %v, want %v", got, tt.want)
 			}
 		})
 	}
