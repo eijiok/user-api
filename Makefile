@@ -36,3 +36,7 @@ start-mongo:
 # stops mongo db on docker
 stop-mongo:
 	docker stop mongodb-user-api
+
+# create mock using vektra/mockery: https://github.com/vektra/mockery
+mockery:
+	docker run -v "$PWD":/src -w /src vektra/mockery --keeptree --output mocks/interfaces --dir interfaces --all
