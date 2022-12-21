@@ -15,12 +15,18 @@ import (
 type serviceImpl struct {
 	repository   interfaces.UserRepository
 	hashPassword func(password string) (string, error)
+	timeService  interfaces.TimeService
 }
 
-func NewServiceImpl(repository interfaces.UserRepository, hashPassword func(password string) (string, error)) interfaces.UserService {
+func NewServiceImpl(
+	repository interfaces.UserRepository,
+	hashPassword func(password string) (string, error),
+	timeService interfaces.TimeService,
+) interfaces.UserService {
 	return &serviceImpl{
 		repository:   repository,
 		hashPassword: hashPassword,
+		timeService:  timeService,
 	}
 }
 
@@ -52,8 +58,8 @@ func (s *serviceImpl) Save(ctx context.Context, userRequest *dto.UserRequest) (*
 		return nil, err
 	}
 	user := userRequest.ToUser()
-	user.CreatedAt = time.Now()
-	user.UpdatedAt = time.Now()
+	user.CreatedAt = time.Now().UTC()
+	user.UpdatedAt = time.Now().UTC()
 
 	id, err := s.repository.Save(ctx, &user)
 	if err != nil {
@@ -69,6 +75,9 @@ func (s *serviceImpl) Save(ctx context.Context, userRequest *dto.UserRequest) (*
 
 func (s *serviceImpl) GetById(ctx context.Context, objectID *primitive.ObjectID) (*dto.UserResponse, error) {
 	user, err := s.repository.GetById(ctx, objectID)
+	if err != nil {
+		return nil, err
+	}
 	dtoUser := dto.UserResponse{}
 	dtoUser.FromUserModel(user)
 	return &dtoUser, err
@@ -89,7 +98,7 @@ func (s *serviceImpl) Update(ctx context.Context, objectID *primitive.ObjectID, 
 
 	user := userRequest.ToUser()
 	user.ID = *objectID
-	user.UpdatedAt = time.Now()
+	user.UpdatedAt = time.Now().UTC()
 
 	countUpdated, err := s.repository.Update(ctx, &user)
 	log.Printf("updated %d documents", countUpdated)

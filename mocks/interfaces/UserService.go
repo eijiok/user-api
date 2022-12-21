@@ -31,6 +31,22 @@ func (_m *UserService) Delete(ctx context.Context, id *primitive.ObjectID) error
 	return r0
 }
 
+// DoesEmailNotExist provides a mock function with given fields: ctx
+func (_m *UserService) DoesEmailNotExist(ctx context.Context) func(interface{}) bool {
+	ret := _m.Called(ctx)
+
+	var r0 func(interface{}) bool
+	if rf, ok := ret.Get(0).(func(context.Context) func(interface{}) bool); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(func(interface{}) bool)
+		}
+	}
+
+	return r0
+}
+
 // GetById provides a mock function with given fields: ctx, id
 func (_m *UserService) GetById(ctx context.Context, id *primitive.ObjectID) (*dto.UserResponse, error) {
 	ret := _m.Called(ctx, id)

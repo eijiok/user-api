@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
+	"time"
 )
 
 type RequestResponseFunc func(writer http.ResponseWriter, request *http.Request)
@@ -38,6 +39,7 @@ type UserService interface {
 	Save(ctx context.Context, user *dto.UserRequest) (*dto.UserResponse, error)
 	Update(ctx context.Context, id *primitive.ObjectID, user *dto.UserRequest) error
 	Delete(ctx context.Context, id *primitive.ObjectID) error
+	DoesEmailNotExist(ctx context.Context) func(value any) bool
 }
 
 type UserRepository interface {
@@ -51,4 +53,8 @@ type UserRepository interface {
 
 type UserRouter interface {
 	ConfigRoutes(apiRouter *mux.Router, pathPrefix string, pathUserApi string)
+}
+
+type TimeService interface {
+	Now() time.Time
 }

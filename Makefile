@@ -39,4 +39,4 @@ stop-mongo:
 
 # create mock using vektra/mockery: https://github.com/vektra/mockery
 mockery:
-	docker run -v "$PWD":/src -w /src vektra/mockery --keeptree --output mocks/interfaces --dir interfaces --all
+	mockery --keeptree --output mocks/interfaces --dir interfaces --all
